@@ -11,21 +11,8 @@ export const metadata: Metadata = {
   description: 'QR-Glaubensquiz mit sechs Fragen und digitaler Urkunde ab fünf richtigen Antworten.',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/bfg-erlangen-favicon-32.png',
+    apple: '/bfg-erlangen-favicon-300.png',
   },
 }
 
