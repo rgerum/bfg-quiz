@@ -8,107 +8,98 @@ export interface Question {
 export const questions: Question[] = [
   {
     id: 1,
-    question: "Welche Stadt ist die Hauptstadt von Australien?",
-    answers: ["Sydney", "Melbourne", "Canberra", "Brisbane"],
-    correctAnswer: 2,
+    question:
+      "Wenn Adam und Eva nur drei Söhne hatten (Kain, Abel und Seth), wie entstand dann die Menschheit?",
+    answers: [
+      "Durch Mutationssprung",
+      "Durch Vermehrung mit Außerirdischen",
+      "Einer der Drei lies sich zur Frau um operieren",
+      "Durch Vermehrung mit der Tochter des Bibel-Protokollschreibers",
+    ],
+    correctAnswer: 3,
   },
   {
     id: 2,
-    question: "Wie viele Planeten hat unser Sonnensystem?",
-    answers: ["7", "8", "9", "10"],
-    correctAnswer: 1,
+    question: "Die Glaubens- und Gewissensfreiheit ist festgeschrieben im",
+    answers: [
+      "Alten Testament",
+      "Neuen Testament",
+      "Hochgesetz",
+      "Grundgesetz",
+    ],
+    correctAnswer: 3,
   },
   {
     id: 3,
-    question: "Wer malte die Mona Lisa?",
-    answers: ["Michelangelo", "Raphael", "Leonardo da Vinci", "Donatello"],
-    correctAnswer: 2,
+    question: "Wer bezahlt das Gehalt des Bischoffs?",
+    answers: [
+      "Die Katholiken",
+      "Die Evangelischen",
+      "Das Arbeitsamt",
+      "Der Landkreis",
+    ],
+    correctAnswer: 3,
   },
   {
     id: 4,
-    question: "In welchem Jahr fiel die Berliner Mauer?",
-    answers: ["1987", "1989", "1991", "1990"],
-    correctAnswer: 1,
+    question: "Jesus war ein",
+    answers: ["Jude", "Christ", "Uneheliches Kind", "Halbgott"],
+    correctAnswer: 0,
   },
   {
     id: 5,
-    question: "Welches chemische Element hat das Symbol 'Au'?",
-    answers: ["Silber", "Kupfer", "Gold", "Aluminium"],
-    correctAnswer: 2,
+    question: "Der Bund für Geistesfreiheit befasst sich mit",
+    answers: [
+      "Alkoholischen Getränken",
+      "Geistergeschichten",
+      "Freizügiger Körperkultur",
+      "Glaubensfreiheit",
+    ],
+    correctAnswer: 3,
   },
   {
     id: 6,
-    question: "Wie viele Kontinente gibt es auf der Erde?",
-    answers: ["5", "6", "7", "8"],
-    correctAnswer: 2,
-  },
-  {
-    id: 7,
-    question: "Welches ist das groesste Saugetier der Welt?",
-    answers: ["Afrikanischer Elefant", "Blauwal", "Giraffe", "Weisser Hai"],
-    correctAnswer: 1,
-  },
-  {
-    id: 8,
-    question: "Wer schrieb 'Romeo und Julia'?",
-    answers: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
-    correctAnswer: 1,
-  },
-  {
-    id: 9,
-    question: "Wie viele Knochen hat ein erwachsener Mensch?",
-    answers: ["186", "206", "226", "246"],
-    correctAnswer: 1,
-  },
-  {
-    id: 10,
-    question: "Welcher Planet ist der Sonne am naechsten?",
-    answers: ["Venus", "Mars", "Merkur", "Erde"],
-    correctAnswer: 2,
+    question:
+      "Die wichtigste finanzielle Unterstützung der katholischen Kirche in Deutschland basiert auf",
+    answers: [
+      "Den Einnahmen des Bettelordens",
+      "Freiwilligen Spenden und aufgrund Gerichtsurteile",
+      "Einnahmen mit dem Klingelbeutel",
+      "Dem bis heute gültigen Vertrag (Konkordat), der mit der Regierung Adolf Hitler geschlossen wurde",
+    ],
+    correctAnswer: 3,
   },
 ]
 
 export interface ResultCategory {
-  minScore: number
-  maxScore: number
   title: string
   description: string
-  emoji: string
+  certificate: boolean
 }
 
-export const resultCategories: ResultCategory[] = [
-  {
-    minScore: 0,
-    maxScore: 3,
-    title: "Anfaenger",
-    description: "Du hast noch Luft nach oben! Aber keine Sorge, Uebung macht den Meister. Versuche es doch gleich noch einmal!",
-    emoji: "📚",
-  },
-  {
-    minScore: 4,
-    maxScore: 6,
-    title: "Fortgeschritten",
-    description: "Nicht schlecht! Du hast ein solides Grundwissen. Mit etwas mehr Uebung wirst du noch besser!",
-    emoji: "🎯",
-  },
-  {
-    minScore: 7,
-    maxScore: 9,
-    title: "Experte",
-    description: "Beeindruckend! Du kennst dich wirklich gut aus. Nur noch ein kleiner Schritt zum perfekten Ergebnis!",
-    emoji: "🌟",
-  },
-  {
-    minScore: 10,
-    maxScore: 10,
-    title: "Genie",
-    description: "Perfekt! Du hast alle Fragen richtig beantwortet. Du bist ein wahres Wissensgenie!",
-    emoji: "🏆",
-  },
-]
-
 export function getResultCategory(score: number): ResultCategory {
-  return resultCategories.find(
-    (category) => score >= category.minScore && score <= category.maxScore
-  ) || resultCategories[0]
+  if (score > 4) {
+    return {
+      title: "Digitale Urkunde freigeschaltet",
+      description:
+        "Sie haben mehr als vier Antworten richtig geglaubt. Damit erhalten Sie automatisch Ihre digitale Urkunde und können damit am Stand des BfG Ihren Gewinn entgegennehmen.",
+      certificate: true,
+    }
+  }
+
+  if (score >= 3) {
+    return {
+      title: "Knapp vorbei",
+      description:
+        "Sie waren nah dran. Für die digitale Urkunde brauchen Sie mehr als vier richtige Antworten. Glauben Sie an sich und versuchen Sie es noch einmal.",
+      certificate: false,
+    }
+  }
+
+  return {
+    title: "Noch ein Versuch",
+    description:
+      "Dieses Mal hat es noch nicht für die Urkunde gereicht. Starten Sie das Quiz erneut und prüfen Sie Ihre Antworten noch einmal.",
+    certificate: false,
+  }
 }

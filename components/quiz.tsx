@@ -1,22 +1,27 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { questions, getResultCategory, type Question } from "@/lib/quiz-data"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { CheckCircle2, XCircle, RotateCcw, Trophy } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
+import {
+  Award,
+  CheckCircle2,
+  RotateCcw,
+  ShieldCheck,
+  Trophy,
+} from "lucide-react"
 import Image from "next/image"
 
-type QuizState = "start" | "playing" | "result"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { cn } from "@/lib/utils"
+import { getResultCategory, questions, type Question } from "@/lib/quiz-data"
 
 const answerLabels = ["A", "B", "C", "D"]
 
 function Header() {
   return (
     <header className="w-full border-b border-border bg-card">
-      <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div className="mx-auto flex max-w-4xl items-center gap-4 px-4 py-3">
         <Image
           src="/bfg-logo.jpg"
           alt="bfg Erlangen Logo"
@@ -32,264 +37,268 @@ function Header() {
   )
 }
 
+function Certificate({ score }: { score: number }) {
+  return (
+    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-left">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+        <Award className="h-6 w-6 text-emerald-700" />
+      </div>
+      <h3 className="text-2xl font-bold text-emerald-950">
+        Digitale Urkunde
+      </h3>
+      <p className="mt-3 text-sm leading-6 text-emerald-900">
+        Sie haben mehr als vier Antworten richtig geglaubt. Diese digitale
+        Urkunde berechtigt zur Gewinnabholung am Stand des BfG.
+      </p>
+      <div className="mt-5 rounded-xl border border-emerald-200 bg-white p-4">
+        <p className="text-xs uppercase tracking-wide text-emerald-700">
+          Ergebnis
+        </p>
+        <p className="mt-2 text-3xl font-bold text-emerald-950">
+          {score} / {questions.length}
+        </p>
+        <p className="mt-2 text-sm text-emerald-900">
+          Status: Gewinn freigegeben
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export function Quiz() {
-  const [mounted, setMounted] = useState(false)
-  const [quizState, setQuizState] = useState<QuizState>("start")
+  const [hasStarted, setHasStarted] = useState(false)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
-  const [showFeedback, setShowFeedback] = useState(false)
   const [score, setScore] = useState(0)
   const [answers, setAnswers] = useState<(number | null)[]>([])
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const [isFinished, setIsFinished] = useState(false)
 
   const currentQuestion: Question | undefined = questions[currentQuestionIndex]
-  const progress = ((currentQuestionIndex) / questions.length) * 100
+  const progress = (currentQuestionIndex / questions.length) * 100
+  const resultCategory = getResultCategory(score)
 
-  const handleStartQuiz = () => {
-    setQuizState("playing")
-    setCurrentQuestionIndex(0)
-    setSelectedAnswer(null)
-    setShowFeedback(false)
-    setScore(0)
-    setAnswers([])
-  }
+  function handleAnswerSelect(answerIndex: number) {
+    if (!currentQuestion) return
 
-  const handleSelectAnswer = (answerIndex: number) => {
-    if (showFeedback) return
-    setSelectedAnswer(answerIndex)
-  }
+    const isCorrect = answerIndex === currentQuestion.correctAnswer
 
-  const handleConfirmAnswer = () => {
-    if (selectedAnswer === null || !currentQuestion) return
-    
-    setShowFeedback(true)
-    const isCorrect = selectedAnswer === currentQuestion.correctAnswer
+    setAnswers((prev) => [...prev, answerIndex])
     if (isCorrect) {
       setScore((prev) => prev + 1)
     }
-    setAnswers((prev) => [...prev, selectedAnswer])
-  }
 
-  const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1)
-      setSelectedAnswer(null)
-      setShowFeedback(false)
     } else {
-      setQuizState("result")
+      setIsFinished(true)
     }
   }
 
-  const resultCategory = getResultCategory(score)
-
-  // Prevent hydration mismatch by not rendering until mounted
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="animate-pulse text-muted-foreground">Lade Quiz...</div>
-        </div>
-      </div>
-    )
+  function handleRestart() {
+    setHasStarted(false)
+    setCurrentQuestionIndex(0)
+    setScore(0)
+    setAnswers([])
+    setIsFinished(false)
   }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+      <main className="flex-1 flex items-center justify-center p-4">
         <AnimatePresence mode="wait">
-          {quizState === "start" && (
+          {!hasStarted ? (
             <motion.div
               key="start"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full max-w-2xl text-center space-y-8"
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-2xl rounded-2xl bg-card p-6 md:p-8"
             >
-              <div className="space-y-4">
-                <h1 className="text-4xl md:text-5xl font-bold text-foreground text-balance">
-                  Rädli 2026 Quiz
-                </h1>
-                <p className="text-muted-foreground text-lg">
-                  Teste dein Wissen mit 10 spannenden Fragen.
-                </p>
+              <div className="space-y-6 text-center">
+                <div className="mx-auto w-full max-w-sm overflow-hidden rounded-2xl">
+                  <Image
+                    src="/glaubensquiz-title.webp"
+                    alt="Titelbild des Glaubensquiz"
+                    width={1084}
+                    height={1404}
+                    className="h-auto w-full"
+                    priority
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <h1 className="text-3xl font-bold text-foreground text-balance md:text-4xl">
+                    Glaubensquiz
+                  </h1>
+                  <p className="text-sm leading-7 text-muted-foreground">
+                    Dieses QR-Quiz ist ein Glaubensquiz, kreuzen Sie die Antwort
+                    an, die Sie für richtig glauben.
+                  </p>
+                  <p className="text-sm leading-7 text-muted-foreground">
+                    Es gibt 6 Fragen bei denen jeweils eine Antwort als richtig
+                    gewertet wird.
+                  </p>
+                  <p className="text-sm leading-7 text-muted-foreground">
+                    Bei mehr als 4 richtig geglaubten Antworten erhalten Sie
+                    automatisch eine digitale Urkunde, mit der Sie am Stand des
+                    BfG ihren Gewinn entgegen nehmen dürfen.
+                  </p>
+                  <p className="font-medium text-foreground">
+                    Glauben Sie an sich (!) wir tun es auch !
+                  </p>
+                </div>
+
+                <Button size="lg" onClick={() => setHasStarted(true)}>
+                  Quiz starten
+                </Button>
               </div>
-              <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>10 Fragen</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>4 Antworten pro Frage</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>Sofortiges Feedback</span>
-                </div>
-              </div>
-              <Button 
-                size="lg" 
-                onClick={handleStartQuiz}
-                className="px-8"
-              >
-                Quiz starten
-              </Button>
             </motion.div>
-          )}
-
-          {quizState === "playing" && currentQuestion && (
-            <div className="w-full max-w-2xl flex flex-col self-start pt-8">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Frage {currentQuestionIndex + 1} von {questions.length}
-                </span>
-                <span className="text-sm font-medium text-primary">
-                  {score} {score === 1 ? "Punkt" : "Punkte"}
-                </span>
-              </div>
-              <Progress value={progress} className="h-2 mb-8" />
-              
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`question-${currentQuestionIndex}`}
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  transition={{ duration: 0.3 }}
-                  className="space-y-6"
-                >
-                  <h2 className="text-xl font-semibold text-foreground text-balance leading-relaxed">
-                    {currentQuestion.question}
-                  </h2>
-                  <div className="space-y-3">
-                    {currentQuestion.answers.map((answer, index) => {
-                      const isSelected = selectedAnswer === index
-                      const isCorrect = index === currentQuestion.correctAnswer
-                      const showCorrect = showFeedback && isCorrect
-                      const showWrong = showFeedback && isSelected && !isCorrect
-
-                      return (
-                        <button
-                          key={index}
-                          onClick={() => handleSelectAnswer(index)}
-                          disabled={showFeedback}
-                          className={cn(
-                            "w-full p-4 rounded-lg border-2 text-left transition-all flex items-center gap-4",
-                            "hover:border-primary/50 hover:bg-primary/5",
-                            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                            "disabled:cursor-not-allowed",
-                            isSelected && !showFeedback && "border-primary bg-primary/10",
-                            showCorrect && "border-green-500 bg-green-50 text-green-900",
-                            showWrong && "border-red-500 bg-red-50 text-red-900",
-                            !isSelected && !showCorrect && !showWrong && "border-border"
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold",
-                              isSelected && !showFeedback && "bg-primary text-primary-foreground",
-                              showCorrect && "bg-green-500 text-white",
-                              showWrong && "bg-red-500 text-white",
-                              !isSelected && !showCorrect && !showWrong && "bg-muted text-muted-foreground"
-                            )}
-                          >
-                            {showCorrect ? (
-                              <CheckCircle2 className="h-5 w-5" />
-                            ) : showWrong ? (
-                              <XCircle className="h-5 w-5" />
-                            ) : (
-                              answerLabels[index]
-                            )}
-                          </span>
-                          <span className="font-medium">{answer}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <div className="flex justify-end">
-                    {!showFeedback ? (
-                      <Button
-                        onClick={handleConfirmAnswer}
-                        disabled={selectedAnswer === null}
-                        size="lg"
-                      >
-                        Antwort bestätigen
-                      </Button>
-                    ) : (
-                      <Button onClick={handleNextQuestion} size="lg">
-                        {currentQuestionIndex < questions.length - 1
-                          ? "Nächste Frage"
-                          : "Ergebnis anzeigen"}
-                      </Button>
-                    )}
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          )}
-
-          {quizState === "result" && (
+          ) : !isFinished && currentQuestion ? (
             <motion.div
-              key="result"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              className="w-full max-w-2xl text-center space-y-6"
+              key={currentQuestion.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-2xl rounded-2xl bg-card p-6 md:p-8"
             >
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                <Trophy className="h-10 w-10 text-primary" />
+              <div className="mb-6 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+                    <span>
+                      Frage {currentQuestionIndex + 1} von {questions.length}
+                    </span>
+                    <span>{score} Punkte</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                </div>
               </div>
-              <h2 className="text-3xl font-bold text-foreground">
-                {resultCategory.title}
-              </h2>
-              <div className="text-4xl font-bold text-primary">
-                {score} / {questions.length}
-              </div>
-              <p className="text-muted-foreground text-lg max-w-md mx-auto">
-                {resultCategory.description}
-              </p>
 
-              <div className="pt-4 space-y-3">
-                <h3 className="font-semibold text-left">Deine Antworten:</h3>
-                <div className="grid gap-2">
-                  {questions.map((q, index) => {
-                    const userAnswer = answers[index]
-                    const isCorrect = userAnswer === q.correctAnswer
+              <div className="space-y-5">
+                <h2 className="text-2xl font-semibold leading-tight text-foreground text-balance">
+                  {currentQuestion.question}
+                </h2>
+
+                <div className="grid gap-3">
+                  {currentQuestion.answers.map((answer, index) => {
                     return (
-                      <div
-                        key={q.id}
+                      <button
+                        key={answer}
+                        type="button"
+                        onClick={() => handleAnswerSelect(index)}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg text-sm",
-                          isCorrect ? "bg-green-50 text-green-900" : "bg-red-50 text-red-900"
+                          "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
+                          "hover:border-primary/50 hover:bg-primary/5",
+                          "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                          "border-border bg-background"
                         )}
                       >
-                        {isCorrect ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-red-600 shrink-0" />
-                        )}
-                        <span className="text-left line-clamp-1">{q.question}</span>
-                      </div>
+                        <span
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-muted-foreground"
+                        >
+                          {answerLabels[index]}
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {answer}
+                        </span>
+                      </button>
                     )
                   })}
                 </div>
               </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="result"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-2xl rounded-2xl bg-card p-6 md:p-8"
+            >
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                    {resultCategory.certificate ? (
+                      <ShieldCheck className="h-10 w-10 text-primary" />
+                    ) : (
+                      <Trophy className="h-10 w-10 text-primary" />
+                    )}
+                  </div>
+                  <h2 className="mt-4 text-3xl font-bold text-foreground">
+                    {resultCategory.title}
+                  </h2>
+                  <div className="mt-3 text-4xl font-bold text-primary">
+                    {score} / {questions.length}
+                  </div>
+                  <p className="mx-auto mt-3 max-w-xl text-lg text-muted-foreground">
+                    {resultCategory.description}
+                  </p>
+                </div>
 
-              <Button
-                size="lg"
-                onClick={handleStartQuiz}
-                className="mt-6"
-              >
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Nochmal spielen
-              </Button>
+                {resultCategory.certificate && <Certificate score={score} />}
+
+                {!resultCategory.certificate && (
+                  <div className="rounded-xl border border-border bg-muted/40 p-5 text-left">
+                    <p className="font-semibold text-foreground">
+                      Digitale Urkunde nicht freigeschaltet
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      Für die Urkunde werden mindestens fünf richtige Antworten
+                      benötigt.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-left text-foreground">
+                    Ihre Antworten:
+                  </h3>
+                  <div className="grid gap-2">
+                    {questions.map((question, index) => {
+                      const userAnswer = answers[index]
+                      const isCorrect = userAnswer === question.correctAnswer
+
+                      return (
+                        <div
+                          key={question.id}
+                          className={cn(
+                            "flex items-start gap-3 rounded-lg p-3 text-sm",
+                            isCorrect
+                              ? "bg-green-50 text-green-900"
+                              : "bg-red-50 text-red-900"
+                          )}
+                        >
+                          {isCorrect ? (
+                            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+                          ) : (
+                            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">
+                              ×
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium">{question.question}</p>
+                            <p className="mt-1 text-xs opacity-80">
+                              Ihre Antwort:{" "}
+                              {userAnswer !== null
+                                ? question.answers[userAnswer]
+                                : "Keine Auswahl"}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <Button size="lg" onClick={handleRestart}>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Nochmal spielen
+                  </Button>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

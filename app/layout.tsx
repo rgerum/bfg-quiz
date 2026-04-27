@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Rädli 2026 Quiz - bfg Erlangen',
-  description: 'Teste dein Wissen beim Rädli 2026 Quiz des Bund für Geistesfreiheit Erlangen',
+  title: 'Glaubensquiz - Bund für Geistesfreiheit Erlangen',
+  description: 'QR-Glaubensquiz mit sechs Fragen und digitaler Urkunde ab fünf richtigen Antworten.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -35,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="de">
       <body className="font-sans antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
