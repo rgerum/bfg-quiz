@@ -2,25 +2,19 @@
 
 import { useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import {
-  Award,
-  CheckCircle2,
-  RotateCcw,
-  ShieldCheck,
-  Trophy,
-} from "lucide-react"
+import { RotateCcw, Trophy } from "lucide-react"
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-import { getResultCategory, questions, type Question } from "@/lib/quiz-data"
+import { questions, type Question } from "@/lib/quiz-data"
 
 const answerLabels = ["A", "B", "C", "D"]
 
 function Header() {
   return (
-    <header className="w-full border-b border-border bg-card">
+    <header className="sticky top-0 z-20 w-full border-b border-border bg-card">
       <div className="mx-auto flex max-w-4xl items-center gap-4 px-4 py-3">
         <Image
           src="/bfg-logo.jpg"
@@ -37,30 +31,16 @@ function Header() {
   )
 }
 
-function Certificate({ score }: { score: number }) {
+function CertificateImage() {
   return (
-    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-left">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-        <Award className="h-6 w-6 text-emerald-700" />
-      </div>
-      <h3 className="text-2xl font-bold text-emerald-950">
-        Digitale Urkunde
-      </h3>
-      <p className="mt-3 text-sm leading-6 text-emerald-900">
-        Sie haben mehr als vier Antworten richtig geglaubt. Diese digitale
-        Urkunde berechtigt zur Gewinnabholung am Stand des BfG.
-      </p>
-      <div className="mt-5 rounded-xl border border-emerald-200 bg-white p-4">
-        <p className="text-xs uppercase tracking-wide text-emerald-700">
-          Ergebnis
-        </p>
-        <p className="mt-2 text-3xl font-bold text-emerald-950">
-          {score} / {questions.length}
-        </p>
-        <p className="mt-2 text-sm text-emerald-900">
-          Status: Gewinn freigegeben
-        </p>
-      </div>
+    <div className="mx-auto w-full max-w-4xl">
+      <Image
+        src="/glaubensquiz-zertifikat.png"
+        alt="Zertifikat zum Abschluss des Glaubensquiz"
+        width={1448}
+        height={1086}
+        className="h-auto w-full"
+      />
     </div>
   )
 }
@@ -74,7 +54,6 @@ export function Quiz() {
 
   const currentQuestion: Question | undefined = questions[currentQuestionIndex]
   const progress = (currentQuestionIndex / questions.length) * 100
-  const resultCategory = getResultCategory(score)
 
   function handleAnswerSelect(answerIndex: number) {
     if (!currentQuestion) return
@@ -104,7 +83,20 @@ export function Quiz() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="flex-1 flex items-center justify-center p-4">
+      {hasStarted && !isFinished && (
+        <div className="sticky top-[73px] z-10 bg-background/95 backdrop-blur">
+          <div className="mx-auto w-full max-w-4xl px-4 py-5">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">
+                Frage {currentQuestionIndex + 1} von {questions.length}
+              </p>
+              <Progress value={progress} className="h-2" />
+            </div>
+          </div>
+        </div>
+      )}
+      <main className="flex-1 flex flex-col items-center justify-center p-4">
+      
         <AnimatePresence mode="wait">
           {!hasStarted ? (
             <motion.div
@@ -113,7 +105,7 @@ export function Quiz() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-2xl rounded-2xl bg-card p-6 md:p-8"
+              className="w-full max-w-2xl rounded-2xl bg-card px-6 md:px-8"
             >
               <div className="space-y-6 text-center">
                 <div className="mx-auto w-full max-w-sm overflow-hidden rounded-2xl">
@@ -136,11 +128,7 @@ export function Quiz() {
                     an, die Sie für richtig glauben.
                   </p>
                   <p className="text-sm leading-7 text-muted-foreground">
-                    Es gibt 6 Fragen bei denen jeweils eine Antwort als richtig
-                    gewertet wird.
-                  </p>
-                  <p className="text-sm leading-7 text-muted-foreground">
-                    Bei mehr als 4 richtig geglaubten Antworten erhalten Sie
+                    Am Ende des Quizzes erhalten Sie
                     automatisch eine digitale Urkunde, mit der Sie am Stand des
                     BfG ihren Gewinn entgegen nehmen dürfen.
                   </p>
@@ -163,18 +151,6 @@ export function Quiz() {
               transition={{ duration: 0.2 }}
               className="w-full max-w-2xl rounded-2xl bg-card p-6 md:p-8"
             >
-              <div className="mb-6 space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
-                    <span>
-                      Frage {currentQuestionIndex + 1} von {questions.length}
-                    </span>
-                    <span>{score} Punkte</span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
-                </div>
-              </div>
-
               <div className="space-y-5">
                 <h2 className="text-2xl font-semibold leading-tight text-foreground text-balance">
                   {currentQuestion.question}
@@ -215,41 +191,14 @@ export function Quiz() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.97 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-2xl rounded-2xl bg-card p-6 md:p-8"
+              className="w-full max-w-4xl rounded-2xl bg-card px-3 py-6 md:px-4 md:py-8"
             >
               <div className="space-y-6">
-                <div className="text-center">
-                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                    {resultCategory.certificate ? (
-                      <ShieldCheck className="h-10 w-10 text-primary" />
-                    ) : (
-                      <Trophy className="h-10 w-10 text-primary" />
-                    )}
-                  </div>
-                  <h2 className="mt-4 text-3xl font-bold text-foreground">
-                    {resultCategory.title}
-                  </h2>
-                  <div className="mt-3 text-4xl font-bold text-primary">
-                    {score} / {questions.length}
-                  </div>
-                  <p className="mx-auto mt-3 max-w-xl text-lg text-muted-foreground">
-                    {resultCategory.description}
-                  </p>
-                </div>
-
-                {resultCategory.certificate && <Certificate score={score} />}
-
-                {!resultCategory.certificate && (
-                  <div className="rounded-xl border border-border bg-muted/40 p-5 text-left">
-                    <p className="font-semibold text-foreground">
-                      Digitale Urkunde nicht freigeschaltet
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      Für die Urkunde werden mindestens fünf richtige Antworten
-                      benötigt.
-                    </p>
-                  </div>
-                )}
+                <CertificateImage />
+                <p className="text-center text-base text-muted-foreground md:text-lg">
+                  Hole dir bei uns am Stand deine Belohnung ab und diskutiere
+                  mit uns deine Antworten.
+                </p>
 
                 <div className="space-y-3">
                   <h3 className="font-semibold text-left text-foreground">
@@ -258,28 +207,15 @@ export function Quiz() {
                   <div className="grid gap-2">
                     {questions.map((question, index) => {
                       const userAnswer = answers[index]
-                      const isCorrect = userAnswer === question.correctAnswer
 
                       return (
                         <div
                           key={question.id}
-                          className={cn(
-                            "flex items-start gap-3 rounded-lg p-3 text-sm",
-                            isCorrect
-                              ? "bg-green-50 text-green-900"
-                              : "bg-red-50 text-red-900"
-                          )}
+                          className="rounded-lg border border-border bg-background p-4 text-sm"
                         >
-                          {isCorrect ? (
-                            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-                          ) : (
-                            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">
-                              ×
-                            </div>
-                          )}
                           <div>
                             <p className="font-medium">{question.question}</p>
-                            <p className="mt-1 text-xs opacity-80">
+                            <p className="mt-2 text-xs text-muted-foreground">
                               Ihre Antwort:{" "}
                               {userAnswer !== null
                                 ? question.answers[userAnswer]
@@ -292,6 +228,19 @@ export function Quiz() {
                   </div>
                 </div>
 
+                <p className="text-center text-sm leading-6 text-muted-foreground md:text-base">
+                  Erfahre mehr über den Bund für Geistesfreiheit auf unserer
+                  Homepage:{" "}
+                  <a
+                    href="https://bfg-erlangen.de/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-foreground underline underline-offset-4"
+                  >
+                    https://bfg-erlangen.de/
+                  </a>
+                </p>
+
                 <div className="flex justify-center">
                   <Button size="lg" onClick={handleRestart}>
                     <RotateCcw className="mr-2 h-4 w-4" />
@@ -302,6 +251,7 @@ export function Quiz() {
             </motion.div>
           )}
         </AnimatePresence>
+        <div className="flex-2" />
       </main>
     </div>
   )
