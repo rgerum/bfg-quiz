@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { RotateCcw, Trophy } from "lucide-react"
 import Image from "next/image"
@@ -51,16 +51,48 @@ export function Quiz() {
   const [score, setScore] = useState(0)
   const [answers, setAnswers] = useState<(number | null)[]>([])
   const [isFinished, setIsFinished] = useState(false)
+  const [isAnswerLocked, setIsAnswerLocked] = useState(false)
 
   const currentQuestion: Question | undefined = questions[currentQuestionIndex]
   const progress = (currentQuestionIndex / questions.length) * 100
 
+  useEffect(() => {
+    if (!hasStarted || isFinished) {
+      setIsAnswerLocked(false)
+      return
+    }
+    setIsAnswerLocked(false)
+  }, [currentQuestionIndex, hasStarted, isFinished])
+
+  function submitAnswersSilently(answerIndexes: number[], finalScore: number) {
+    const payload = {
+      score: finalScore,
+      quizVersion: "2026-04-30",
+      answers: questions.map((question, index) => ({
+        questionId: question.id,
+        answerIndex: answerIndexes[index],
+      })),
+    }
+
+    void fetch("/api/quiz-submissions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }).catch(() => {})
+  }
+
   function handleAnswerSelect(answerIndex: number) {
-    if (!currentQuestion) return
+    if (!currentQuestion || isAnswerLocked) return
+
+    setIsAnswerLocked(true)
 
     const isCorrect = answerIndex === currentQuestion.correctAnswer
+    const nextAnswers = [...answers, answerIndex]
+    const nextScore = score + (isCorrect ? 1 : 0)
 
-    setAnswers((prev) => [...prev, answerIndex])
+    setAnswers(nextAnswers)
     if (isCorrect) {
       setScore((prev) => prev + 1)
     }
@@ -69,6 +101,7 @@ export function Quiz() {
       setCurrentQuestionIndex((prev) => prev + 1)
     } else {
       setIsFinished(true)
+      submitAnswersSilently(nextAnswers, nextScore)
     }
   }
 
@@ -78,6 +111,7 @@ export function Quiz() {
     setScore(0)
     setAnswers([])
     setIsFinished(false)
+    setIsAnswerLocked(false)
   }
 
   return (
@@ -163,11 +197,12 @@ export function Quiz() {
                         key={answer}
                         type="button"
                         onClick={() => handleAnswerSelect(index)}
+                        disabled={isAnswerLocked}
                         className={cn(
                           "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
                           "hover:border-primary/50 hover:bg-primary/5",
                           "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                          "border-border bg-background"
+                          "border-border bg-background disabled:cursor-not-allowed disabled:opacity-75"
                         )}
                       >
                         <span
